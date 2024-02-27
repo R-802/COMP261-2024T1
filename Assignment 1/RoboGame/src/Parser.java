@@ -3,13 +3,12 @@ import java.util.regex.*;
 
 /**
  * See assignment handout for the grammar.
- * You need to implement the parse(..) method and all the rest of the parser.
+ * You need to implement the parse(...) method and all the rest of the parser.
  * There are several methods provided for you:
  * - several utility methods to help with the parsing
  * See also the TestParser class for testing your code.
  */
 public class Parser {
-
 
     // Useful Patterns
 
@@ -20,6 +19,7 @@ public class Parser {
     static final Pattern CLOSEBRACE = Pattern.compile("\\}");
 
     //----------------------------------------------------------------
+
     /**
      * The top of the parser, which is handed a scanner containing
      * the text of the program to parse.
@@ -30,10 +30,18 @@ public class Parser {
         s.useDelimiter("\\s+|(?=[{}(),;])|(?<=[{}(),;])");
         // THE PARSER GOES HERE
         // Call the parseProg method for the first grammar rule (PROG) and return the node
-        return null;
+        return parseProg(s);
     }
 
-
+    private ProgramNode parseProg(Scanner s) {
+        // Parse statements until the end
+        List<StmtNode> statements = new ArrayList<>();
+        while (s.hasNext()) {
+            statements.add(parseStmt(s));
+        }
+        // Create and return a ProgramNode with the parsed statements
+        return new ProgramNode(statements);
+    }
 
 
 
@@ -116,4 +124,3 @@ public class Parser {
 //  class BlockNode implements ProgramNode {.....
 //     with fields, a toString() method and an execute() method
 //
-
