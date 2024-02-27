@@ -1,5 +1,13 @@
-import java.util.*;
-import java.util.regex.*;
+package main;
+
+import nodes.interfaces.ProgramNode;
+import nodes.interfaces.StatementNode;
+import util.exepeptions.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+import java.util.regex.Pattern;
 
 /**
  * See assignment handout for the grammar.
@@ -10,9 +18,8 @@ import java.util.regex.*;
  */
 public class Parser {
 
-    // Useful Patterns
-
-    static final Pattern NUMPAT = Pattern.compile("-?[1-9][0-9]*|0"); 
+    // Useful Regex Patterns
+    static final Pattern NUMPAT = Pattern.compile("-?[1-9][0-9]*|0");
     static final Pattern OPENPAREN = Pattern.compile("\\(");
     static final Pattern CLOSEPAREN = Pattern.compile("\\)");
     static final Pattern OPENBRACE = Pattern.compile("\\{");
@@ -23,31 +30,41 @@ public class Parser {
     /**
      * The top of the parser, which is handed a scanner containing
      * the text of the program to parse.
-     * Returns the parse tree.
+     * Returns the parse tree (ProgramNode) representing the program.
      */
-    ProgramNode parse(Scanner s) {
-        // Set the delimiter for the scanner.
+    public ProgramNode parse(Scanner s) {
+        // Set the delimiter for the scanner to recognize tokens separated by whitespace, parentheses, curly braces, commas, and semicolons.
         s.useDelimiter("\\s+|(?=[{}(),;])|(?<=[{}(),;])");
-        // THE PARSER GOES HERE
-        // Call the parseProg method for the first grammar rule (PROG) and return the node
+
+        // Call the parseProg method for the first grammar rule (PROG) and return the parsed program node
         return parseProg(s);
     }
 
     private ProgramNode parseProg(Scanner s) {
         // Parse statements until the end
-        List<StmtNode> statements = new ArrayList<>();
+        List<StatementNode> statements = new ArrayList<>();
         while (s.hasNext()) {
-            statements.add(parseStmt(s));
+            statements.add(parseStatements(s));
         }
+
         // Create and return a ProgramNode with the parsed statements
-        return new ProgramNode(statements);
+        return new ProgramNode() { // Anonymous class implementation
+            @Override
+            public void execute(Robot robot) {
+                // Execute all statements in the sequence
+                for (StatementNode statement : statements) {
+                    statement.execute(robot);
+                }
+            }
+        };
     }
 
-
-
-
-
-
+    private StatementNode parseStatements(Scanner s) {
+        // Implement logic to parse individual statements based on grammar rules
+        // (e.g., check for keywords like "move", "turnL", "loop", etc.)
+        // and create appropriate StatementNode subclasses based on the parsed statement type.
+        throw new UnsupportedOperationException("parseStmt not yet implemented");
+    }
 
     //----------------------------------------------------------------
     // utility methods for the parser
@@ -73,16 +90,21 @@ public class Parser {
      * message
      */
     static String require(String p, String message, Scanner s) {
-        if (s.hasNext(p)) {return s.next();}
+        if (s.hasNext(p)) {
+            return s.next();
+        }
         fail(message, s);
         return null;
     }
 
     static String require(Pattern p, String message, Scanner s) {
-        if (s.hasNext(p)) {return s.next();}
+        if (s.hasNext(p)) {
+            return s.next();
+        }
         fail(message, s);
         return null;
     }
+
 
     /**
      * Requires that the next token matches a pattern (which should only match a
@@ -90,13 +112,17 @@ public class Parser {
      * if not, it throws an exception with an error message
      */
     static int requireInt(String p, String message, Scanner s) {
-        if (s.hasNext(p) && s.hasNextInt()) {return s.nextInt();}
+        if (s.hasNext(p) && s.hasNextInt()) {
+            return s.nextInt();
+        }
         fail(message, s);
         return -1;
     }
 
     static int requireInt(Pattern p, String message, Scanner s) {
-        if (s.hasNext(p) && s.hasNextInt()) {return s.nextInt();}
+        if (s.hasNext(p) && s.hasNextInt()) {
+            return s.nextInt();
+        }
         fail(message, s);
         return -1;
     }
@@ -107,20 +133,18 @@ public class Parser {
      * false without consuming anything.
      */
     static boolean checkFor(String p, Scanner s) {
-        if (s.hasNext(p)) {s.next(); return true;}
+        if (s.hasNext(p)) {
+            s.next();
+            return true;
+        }
         return false;
     }
 
     static boolean checkFor(Pattern p, Scanner s) {
-        if (s.hasNext(p)) {s.next(); return true;} 
+        if (s.hasNext(p)) {
+            s.next();
+            return true;
+        }
         return false;
     }
-
 }
-
-// You could add the node classes here or as separate java files.
-// (if added here, they must not be declared public or private)
-// For example:
-//  class BlockNode implements ProgramNode {.....
-//     with fields, a toString() method and an execute() method
-//

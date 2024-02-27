@@ -1,3 +1,7 @@
+package main;
+
+import util.exepeptions.*;
+
 import java.util.*;
 
 public class TesterRobot extends Robot {

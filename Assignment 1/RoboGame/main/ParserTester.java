@@ -1,15 +1,20 @@
+package main;
+
+import nodes.interfaces.ProgramNode;
+import util.exepeptions.ParserFailureException;
+
+import javax.swing.*;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.*;
-import javax.swing.JFileChooser;
+import java.util.Scanner;
 
-public class ParserTester{
+public class ParserTester {
 
     /**
      * For testing your parser without requiring the world or the game:
      * Calling main with no arguments will repeatedly ask the user
      * to choose a program file and will then attempt to parse it and print it.
-     *
+     * <p>
      * Calling main with arguments will treat each argument as a file name
      * and will attempt to parse and print each file.
      */
@@ -20,15 +25,20 @@ public class ParserTester{
         if (args.length > 0) {
             for (String arg : args) {
                 File file = new File(arg);
-                if (file.exists()) {testParserOnFile(parser, file);}
-                else {System.out.println("Can't find file '" + file + "'");}
+                if (file.exists()) {
+                    testParserOnFile(parser, file);
+                } else {
+                    System.out.println("Can't find file '" + file + "'");
+                }
             }
         } else {
             while (true) {
                 JFileChooser chooser = new JFileChooser(RoboGame.CODE_DIRECTORY);
                 int res = chooser.showOpenDialog(null);
-                if (res != JFileChooser.APPROVE_OPTION) { break; }
-                testParserOnFile(parser,chooser.getSelectedFile());
+                if (res != JFileChooser.APPROVE_OPTION) {
+                    break;
+                }
+                testParserOnFile(parser, chooser.getSelectedFile());
             }
         }
         System.out.println("Done");
@@ -37,20 +47,21 @@ public class ParserTester{
     /**
      * Tests the parser on a single file.
      */
-    static void testParserOnFile(Parser parser, File file){
+    static void testParserOnFile(Parser parser, File file) {
         System.out.println("Parsing '" + file + "'");
-        try{
+        try {
             Scanner scan = new Scanner(file);
             ProgramNode prog = parser.parse(scan);
             System.out.println("Parsing completed ");
-            if (prog == null) {System.out.println("No program generated"); }
-            else              {System.out.println("Program: \n" + prog); }
+            if (prog == null) {
+                System.out.println("No program generated");
+            } else {
+                System.out.println("Program: \n" + prog);
+            }
             scan.close();
-        }
-        catch (FileNotFoundException e) {
+        } catch (FileNotFoundException e) {
             System.out.println("Robot program source file not found");
-        }
-        catch (ParserFailureException e) {
+        } catch (ParserFailureException e) {
             System.out.println("Parser error:");
             System.out.println(e.getMessage());
         }
