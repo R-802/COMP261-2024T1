@@ -4,6 +4,12 @@ import main.Robot;
 import nodes.interfaces.StatementNode;
 import util.exepeptions.RobotInterruptedException;
 
+/**
+ * Represents a loop statement in the program.
+ * <p>
+ * A loop contains a block of statements to be executed repeatedly until the robot is dead.
+ * It acts as a single {@code StatementNode} within the parsed program structure.
+ */
 public class LoopNode implements StatementNode {
 
     private final BlockNode body;
