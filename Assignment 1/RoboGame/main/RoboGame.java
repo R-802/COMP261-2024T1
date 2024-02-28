@@ -15,7 +15,6 @@ public class RoboGame extends JFrame {
     /**
      * REVERT TO ./assets/ AND ./programs/ ON SUBMISSION!!!!
      */
-
     public static String ASSET_DIRECTORY ="Assignment 1/RoboGame/assets/";     // the folder containing the images for the robot
     public static String CODE_DIRECTORY = "Assignment 1/RoboGame/programs/";   // the folder containing the robot programs
     public static boolean debugDisplay = true;

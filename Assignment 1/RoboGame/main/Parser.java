@@ -9,6 +9,7 @@ import util.exepeptions.ParserFailureException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -19,13 +20,21 @@ import java.util.regex.Pattern;
  * See also the TestParser class for testing your code.
  */
 public class Parser {
-    static final Pattern NUMPAT = Pattern.compile("-?[1-9][0-9]*|0");
-    static final Pattern OPENPAREN = Pattern.compile("\\(");
-    static final Pattern CLOSEPAREN = Pattern.compile("\\)");
-    static final Pattern OPENBRACE = Pattern.compile("\\{");
-    static final Pattern CLOSEBRACE = Pattern.compile("\\}");
 
-    //----------------------------------------------------------------
+    // Patterns for the terminals in the grammar
+    private static final Pattern NUMPAT = Pattern.compile("-?[1-9][0-9]*|0");
+    private static final Pattern OPENPAREN = Pattern.compile("\\(");
+    private static final Pattern CLOSEPAREN = Pattern.compile("\\)");
+    private static final Pattern OPENBRACE = Pattern.compile("\\{");
+    private static final Pattern CLOSEBRACE = Pattern.compile("\\}");
+
+    // Non-terminal symbols
+    private static final Set<String> ACTIONS = Set.of("move", "turnL", "turnR", "takeFuel", "wait");
+
+    // Error messages
+    private static final String MISSING_SEMICOLON = "Missing semicolon";
+    private static final String MISSING_OPEN_BRACE = "Missing opening brace for loop";
+    private static final String MISSING_CLOSE_BRACE = "Missing closing brace for loop";
 
     /**
      * The top of the parser, which is handed a scanner containing
@@ -41,115 +50,105 @@ public class Parser {
     }
 
     /**
-     * Parses the program according to the grammar rule for PROG  ::= [ STMT ]*
-     * @param s
-     * @return ProgramNode
+     * Parses the program according to the grammar rule for PROG ::= [STMT]*
+     *
+     * @param s Scanner positioned at the start of the program.
+     * @return A ProgramNode representing the parsed program.
      */
     private ProgramNode parseProgram(Scanner s) {
-        // Initialize an array of nodes
+        // Build a list to hold the parsed statement nodes from the scanner input
         List<StatementNode> nodes = new ArrayList<>();
         while (s.hasNext()) nodes.add(parseStatements(s));
 
-        // Create a programNode to hold the whole program
-        ProgramNode program = new ProgramNode() {
+        // Return a new ProgramNode that contains each statement in the parsed program
+        return new ProgramNode() {
             @Override
-            public void execute(Robot robot) {
+            public void execute(Robot robot) { // Execute each statement in the program
                 for (StatementNode statement : nodes) {
                     statement.execute(robot);
                 }
             }
         };
-        return program;
     }
 
     /**
-     * Parses the statements according to the grammar rule for STMT  ::= ACT ";" | LOOP
-     * @param s
-     * @return StatementNode
+     * Parses statements according to the grammar rules for STMT:
+     * STMT ::= ACT ";" | LOOP
+     *
+     * @param s Scanner positioned at the start of a statement.
+     * @return A StatementNode representing the parsed statement.
      */
     private StatementNode parseStatements(Scanner s) {
-        if (!s.hasNext()) return null; // Handle end of input
-        String token = s.next();
-        switch (token) { // Check the token against the terminals
-            case "move":
-            case "turnL":
-            case "turnR":
-            case "takeFuel":
-            case "wait":
-                return parseAction(s, token);
-            case "loop":
-                return parseLoop(s);
-            default:
-                throw new ParserFailureException("Unexpected token (" + token + ")");
+        // Check for end of input
+        if (!s.hasNext()) throw new ParserFailureException("End of input reached unexpectedly");
+        String token = s.next(); // Get the next token from the scanner
+
+        // Check if the token is an action or a loop
+        if (ACTIONS.contains(token)) {
+            return parseAction(s, token);
+        } else if ("loop".equals(token)) {
+            return parseLoop(s);
+        } else {
+            throw new ParserFailureException("Unexpected token (" + token + ")");
         }
     }
 
     /**
-     * Parses an action according to the grammar rule for ACT   ::= "move" | "turnL" | "turnR" | "takeFuel" | "wait"
-     * @param s
-     * @param action
-     * @return ActionNode
+     * Parses an action according to the grammar rule for ACT:
+     * ACT ::= "move" | "turnL" | "turnR" | "takeFuel" | "wait"
+     *
+     * @param s      Scanner positioned after the action keyword.
+     * @param action The action keyword.
+     * @return An ActionNode representing the parsed action.
      */
     private ActionNode parseAction(Scanner s, String action) {
+        require(";", MISSING_SEMICOLON, s);
+
+        // Return a new ActionNode based on the action keyword
         switch (action) {
             case "move":
-                require(";", "missing semicolon", s);
                 return new MoveNode();
             case "turnL":
-                require(";", "missing semicolon", s);
                 return new TurnLNode();
             case "turnR":
-                require(";", "missing semicolon", s);
                 return new TurnRNode();
             case "takeFuel":
-                require(";", "missing semicolon", s);
                 return new TakeFuelNode();
             case "wait":
-                require(";", "missing semicolon", s);
                 return new WaitNode();
             default:
-                fail("Invalid action: ", s);
-                return null;
+                throw new ParserFailureException("Invalid action: " + action);
         }
     }
 
     /**
-     * Parses a loop according to the grammar rule for LOOP  ::= "loop" BLOCK
-     * @param s
-     * @return LoopNode
+     * Parses a loop according to the grammar rule for LOOP:
+     * LOOP ::= "loop" BLOCK
+     *
+     * @param s Scanner positioned at the "loop" keyword.
+     * @return A LoopNode representing the parsed loop.
      */
     private StatementNode parseLoop(Scanner s) {
-        require(OPENBRACE, "missing opening brace for loop", s);
-
-        // Parse and return a BlockNode representing the loop body
+        require(OPENBRACE, MISSING_OPEN_BRACE, s);
         BlockNode blockNode = parseBlock(s);
-
-        require(CLOSEBRACE, "missing closing brace for loop", s);
-
+        require(CLOSEBRACE, MISSING_CLOSE_BRACE, s);
         return new LoopNode(blockNode);
     }
 
     /**
-     * Parses a block according to the grammar rule for BLOCK ::= "{" STMT+ "}"
-     * @param s
-     * @return BlockNode
+     * Parses a block according to the grammar rule for BLOCK:
+     * BLOCK ::= "{" STMT+ "}"
+     *
+     * @param s Scanner positioned at the start of a block.
+     * @return A BlockNode representing the parsed block.
      */
     private BlockNode parseBlock(Scanner s) {
+        // Build a list to hold the parsed statement nodes from the scanner input
         List<StatementNode> statements = new ArrayList<>();
-        while (!s.hasNext(CLOSEBRACE)) {
-            StatementNode statement = parseStatements(s);
-            if (statement == null) {
-                // Handle potential error in parseStatements
-                throw new ParserFailureException("Unexpected null statement in block");
-            }
-            statements.add(statement);
-        }
+        while (!s.hasNext(CLOSEBRACE)) statements.add(parseStatements(s));
+        if (statements.isEmpty()) throw new ParserFailureException("Block cannot be empty");
 
-        // Ensure block isn't empty
-        if (statements.isEmpty()) {
-            throw new ParserFailureException("Block cannot be empty");
-        }
-
+        // Return a new BlockNode that contains each statement in the parsed block
         return new BlockNode(statements);
     }
 
