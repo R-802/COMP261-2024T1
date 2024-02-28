@@ -1,8 +1,10 @@
 package main;
 
+import nodes.*;
+import nodes.interfaces.ActionNode;
 import nodes.interfaces.ProgramNode;
 import nodes.interfaces.StatementNode;
-import util.exepeptions.*;
+import util.exepeptions.ParserFailureException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,35 +39,82 @@ public class Parser {
         s.useDelimiter("\\s+|(?=[{}(),;])|(?<=[{}(),;])");
 
         // Call the parseProg method for the first grammar rule (PROG) and return the parsed program node
-        return parseProg(s);
+        return parseProgram(s);
     }
 
-    private ProgramNode parseProg(Scanner s) {
-        // Parse statements until the end
-        List<StatementNode> statements = new ArrayList<>();
-        while (s.hasNext()) {
-            statements.add(parseStatements(s));
-        }
+    private ProgramNode parseProgram(Scanner s) {
+        // Initialize an array of nodes
+        List<StatementNode> nodes = new ArrayList<>();
+        while (s.hasNext()) nodes.add(parseStatements(s));
 
-        // Create and return a ProgramNode with the parsed statements
-        return new ProgramNode() { // Anonymous class implementation
-            @Override
-            public void execute(Robot robot) {
-                // Execute all statements in the sequence
-                for (StatementNode statement : statements) {
-                    statement.execute(robot);
-                }
-            }
-        };
+        // Create a blocknode object to hold the whole program
+        BlockNode blockNode = new BlockNode(nodes);
+        return blockNode;
     }
 
     private StatementNode parseStatements(Scanner s) {
-        // Implement logic to parse individual statements based on grammar rules
-        // (e.g., check for keywords like "move", "turnL", "loop", etc.)
-        // and create appropriate StatementNode subclasses based on the parsed statement type.
-        throw new UnsupportedOperationException("parseStmt not yet implemented");
+        if (!s.hasNext()) return null; // Handle end of input
+
+        String token = s.next();
+        switch (token) {
+            case "move":
+            case "turnL":
+            case "turnR":
+            case "takeFuel":
+            case "wait":
+                return parseAction(s, token);
+            case "loop":
+                return parseLoop(s);
+            default:
+                throw new ParserFailureException("Unexpected token (" + token + ")");
+        }
     }
 
+    private ActionNode parseAction(Scanner s, String action) {
+        switch (action) {
+            case "move":
+                require(";", "missing semicolon", s);
+                return new MoveNode();
+            case "turnL":
+                require(";", "missing semicolon", s);
+                return new TurnLNode();
+            case "turnR":
+                require(";", "missing semicolon", s);
+                return new TurnRNode();
+            case "takeFuel":
+                require(";", "missing semicolon", s);
+                return new TakeFuelNode();
+            case "wait":
+                require(";", "missing semicolon", s);
+                return new WaitNode();
+            default:
+                fail("Invalid action: ", s);
+                return null;
+        }
+    }
+
+    private StatementNode parseLoop(Scanner s) {
+        require(OPENBRACE, "missing opening brace for loop", s);
+
+        // Directly parse the statements inside the loop
+        List<StatementNode> bodyStatements = new ArrayList<>();
+        while (!s.hasNext(CLOSEBRACE)) {
+            StatementNode statement = parseStatements(s);
+            if (statement == null) {
+                // Handle potential error in parseStatements
+                throw new ParserFailureException("Unexpected null statement in loop body");
+            }
+            bodyStatements.add(statement);
+        }
+
+        // Ensure loop body isn't empty
+        if (bodyStatements.isEmpty()) {
+            throw new ParserFailureException("Loop body cannot be empty");
+        }
+
+        require(CLOSEBRACE, "missing closing brace for loop", s);
+        return new LoopNode(new BlockNode(bodyStatements));
+    }
     //----------------------------------------------------------------
     // utility methods for the parser
     // - fail(..) reports a failure and throws exception
