@@ -12,14 +12,26 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import static main.Parser.ParserUtil.*;
+
 /**
- * See assignment handout for the grammar.
- * You need to implement the parse(...) method and all the rest of the parser.
- * There are several methods provided for you:
- * - several utility methods to help with the parsing
- * See also the TestParser class for testing your code.
+ * A parser for the RoboGame language.
+ * <p>
+ * The parser reads a program from a scanner and constructs a parse tree.
+ * The parse tree is constructed according to the following grammar:
+ * <pre>
+ * PROG ::= [STMT]*
+ * STMT ::= ACT ";" | LOOP
+ * ACT ::= "move" | "turnL" | "turnR" | "takeFuel" | "wait"
+ * LOOP ::= "loop" BLOCK
+ * BLOCK ::= "{" STMT+ "}"
+ * </pre>
  */
 public class Parser {
+
+    //----------------------------------------------------------------//
+    //                            FIELDS                              //
+    //----------------------------------------------------------------//
 
     // Patterns for the terminals in the grammar
     private static final Pattern NUMPAT = Pattern.compile("-?[1-9][0-9]*|0");
@@ -36,16 +48,17 @@ public class Parser {
     private static final String MISSING_OPEN_BRACE = "Missing opening brace for loop";
     private static final String MISSING_CLOSE_BRACE = "Missing closing brace for loop";
 
+    //----------------------------------------------------------------//
+    //                            PARSER                              //
+    //----------------------------------------------------------------//
+
     /**
      * The top of the parser, which is handed a scanner containing
      * the text of the program to parse.
      * Returns the parse tree (ProgramNode) representing the program.
      */
     public ProgramNode parse(Scanner s) {
-        // Set the delimiter for the scanner to recognize tokens separated by whitespace, parentheses, curly braces, commas, and semicolons.
         s.useDelimiter("\\s+|(?=[{}(),;])|(?<=[{}(),;])");
-
-        // Call the parseProg method for the first grammar rule (PROG) and return the parsed program node
         return parseProgram(s);
     }
 
@@ -152,85 +165,94 @@ public class Parser {
         return new BlockNode(statements);
     }
 
-    //----------------------------------------------------------------
-    // utility methods for the parser
-    // - fail(..) reports a failure and throws exception
-    // - require(..) consumes and returns the next token as long as it matches the pattern
-    // - requireInt(..) consumes and returns the next token as an int as long as it matches the pattern
-    // - checkFor(..) peeks at the next token and only consumes it if it matches the pattern
+    //----------------------------------------------------------------//
+    //                           UTILITY                              //
+    //----------------------------------------------------------------//
 
     /**
-     * Report a failure in the parser.
+     * Utility methods for the parser
+     *
+     * <ul>
+     *   <li>{@link #fail(String, Scanner)} - Throws an exception for parsing failures.</li>
+     *   <li>{@link #require(String, String, Scanner)}, {@link #require(Pattern, String, Scanner)} - Checks and consumes a token if it matches a specified pattern, otherwise throws an error.</li>
+     *   <li>{@link #requireInt(String, String, Scanner)}, {@link #requireInt(Pattern, String, Scanner)} - Validates and converts a token to an integer if it matches a numerical pattern, else throws an error.</li>
+     *   <li>{@link #checkFor(String, Scanner)}, {@link #checkFor(Pattern, Scanner)} - Peeks and optionally consumes a token if it fits a given pattern, returning a boolean.</li>
+     * </ul>
      */
-    static void fail(String message, Scanner s) {
-        String msg = message + "\n   @ ...";
-        for (int i = 0; i < 5 && s.hasNext(); i++) {
-            msg += " " + s.next();
-        }
-        throw new ParserFailureException(msg + "...");
-    }
+    public static class ParserUtil {
 
-    /**
-     * Requires that the next token matches a pattern if it matches, it consumes
-     * and returns the token, if not, it throws an exception with an error
-     * message
-     */
-    static String require(String p, String message, Scanner s) {
-        if (s.hasNext(p)) {
-            return s.next();
+        /**
+         * Report a failure in the parser.
+         */
+        public static void fail(String message, Scanner s) {
+            String msg = message + "\n   @ ...";
+            for (int i = 0; i < 5 && s.hasNext(); i++) {
+                msg += " " + s.next();
+            }
+            throw new ParserFailureException(msg + "...");
         }
-        fail(message, s);
-        return null;
-    }
 
-    static String require(Pattern p, String message, Scanner s) {
-        if (s.hasNext(p)) {
-            return s.next();
+        /**
+         * Requires that the next token matches a pattern if it matches, it consumes
+         * and returns the token, if not, it throws an exception with an error
+         * message
+         */
+        public static String require(String p, String message, Scanner s) {
+            if (s.hasNext(p)) {
+                return s.next();
+            }
+            fail(message, s);
+            return null;
         }
-        fail(message, s);
-        return null;
-    }
 
-
-    /**
-     * Requires that the next token matches a pattern (which should only match a
-     * number) if it matches, it consumes and returns the token as an integer
-     * if not, it throws an exception with an error message
-     */
-    static int requireInt(String p, String message, Scanner s) {
-        if (s.hasNext(p) && s.hasNextInt()) {
-            return s.nextInt();
+        public static String require(Pattern p, String message, Scanner s) {
+            if (s.hasNext(p)) {
+                return s.next();
+            }
+            fail(message, s);
+            return null;
         }
-        fail(message, s);
-        return -1;
-    }
 
-    static int requireInt(Pattern p, String message, Scanner s) {
-        if (s.hasNext(p) && s.hasNextInt()) {
-            return s.nextInt();
+        /**
+         * Requires that the next token matches a pattern (which should only match a
+         * number) if it matches, it consumes and returns the token as an integer
+         * if not, it throws an exception with an error message
+         */
+        public static int requireInt(String p, String message, Scanner s) {
+            if (s.hasNext(p) && s.hasNextInt()) {
+                return s.nextInt();
+            }
+            fail(message, s);
+            return -1;
         }
-        fail(message, s);
-        return -1;
-    }
 
-    /**
-     * Checks whether the next token in the scanner matches the specified
-     * pattern, if so, consumes the token and return true. Otherwise returns
-     * false without consuming anything.
-     */
-    static boolean checkFor(String p, Scanner s) {
-        if (s.hasNext(p)) {
-            s.next();
-            return true;
+        public static int requireInt(Pattern p, String message, Scanner s) {
+            if (s.hasNext(p) && s.hasNextInt()) {
+                return s.nextInt();
+            }
+            fail(message, s);
+            return -1;
         }
-        return false;
-    }
 
-    static boolean checkFor(Pattern p, Scanner s) {
-        if (s.hasNext(p)) {
-            s.next();
-            return true;
+        /**
+         * Checks whether the next token in the scanner matches the specified
+         * pattern, if so, consumes the token and return true. Otherwise returns
+         * false without consuming anything.
+         */
+        public static boolean checkFor(String p, Scanner s) {
+            if (s.hasNext(p)) {
+                s.next();
+                return true;
+            }
+            return false;
         }
-        return false;
+
+        public static boolean checkFor(Pattern p, Scanner s) {
+            if (s.hasNext(p)) {
+                s.next();
+                return true;
+            }
+            return false;
+        }
     }
 }
