@@ -46,15 +46,6 @@ public class BlockNode implements StatementNode {
         }
     }
 
-    /**
-     * Adds a statement to the end of this block.
-     *
-     * @param statement the statement to add
-     */
-    public void addStatement(StatementNode statement) {
-        this.statements.add(statement);
-    }
-
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder("{ ");

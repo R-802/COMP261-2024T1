@@ -3,6 +3,7 @@ package main;
 import nodes.interfaces.ProgramNode;
 import util.exepeptions.ParserFailureException;
 
+import java.util.Objects;
 import java.util.Scanner;
 
 
@@ -39,7 +40,7 @@ public class ParserTester2 {
             {"INVALID", "turnL(3);", "turnL should not have an argument"}, {"INVALID", "turnR(fuelLeft);", "turnR should not have an argument"}, {"INVALID", "turnAround(oppLR);", "turnAround should not have an argument"}, {"INVALID", "move();", "move with an argument needs an argument"}, {"INVALID", "move(3, 4);", "move must not have two arguments"}, {"INVALID", "if(lt(3, 4)){move;} else", "else clause must have a block"}, {"INVALID", "if(lt(3, 4)){move;} else move;", "else clause must have a block"}, {"INVALID", "if(lt(3,4)) else {move;}", "if must have a then part as well as an else"}, {"INVALID", "while (and(lt(3,4), gt(5, 3), eq(2,2))) {move;}", "and(..) must not have more than 2 arguments"}, {"INVALID", "while (and(lt(3,4))) {move;}", "and(..) must not have just 1 argument"}, {"INVALID", "while (and()) {move;}", "and(..) must not have 0 arguments"}, {"INVALID", "while (or(lt(3,4), gt(5, 3), eq(2,2))) {move;}", "or(..) must not have more than 2 arguments"}, {"INVALID", "while (or(lt(3,4))) {move;}", "or(..) must not have just 1 argument"}, {"INVALID", "while (or()) {move;}", "or(..) must not have 0 arguments"}, {"INVALID", "while (not(lt(3,4),gt(4,5))) {move;}", "not(..) must not have more than 1 argument"}, {"INVALID", "while (not()) {move;}", "not(..) must not have 0 arguments"}, {"INVALID", "while (and(3,4)) {move;}", "and(..) must not have numeric arguments"}, {"INVALID", "while (or(3,fuelLeft)) {move;}", "or(..) must not have numeric arguments"}, {"INVALID", "while (not(3)) {move;}", "not(..) must not have numeric arguments"}, {"INVALID", "wait(add(5));", "add must not have just 1 argument"}, {"INVALID", "wait(add());", "add must not have 0 arguments"}, {"INVALID", "wait(sub(5));", "sub must not have just 1 argument"}, {"INVALID", "wait(sub());", "sub must not have 0 arguments"}, {"INVALID", "wait(mul(5));", "mul must not have just 1 argument"}, {"INVALID", "wait(mul());", "mul must not have 0 arguments"}, {"INVALID", "wait(div(5));", "div must not have just 1 argument"}, {"INVALID", "wait(div());", "div must not have 0 arguments"}, {"INVALID", "wait(add(5, lt(3, 4)));", "add must not have boolean arguments"}, {"INVALID", "wait(sub(lt(3, 4),5));", "sub must not have boolean arguments"}, {"INVALID", "wait(mul(5, takeFuel));", "add must not have action arguments"}, {"INVALID", "wait(div(turnL,5));", "div must not have action arguments"},}, {//STAGE 3
             //elif in if
             //optional args to barrelLR and barrelFB
-            //variable and assignments (and use of vars in expressions and relops. put spaces around =
+            //variable and assignments and use of vars in expressions and relops. put spaces around =
             {"VALID", "if (lt(3,4)) {wait;} elif(gt(10,2)) {move;} elif(eq(4,3)) { turnL; } else {turnR;}", "two elif clauses with else"}, {"VALID", "if (lt(3,4)) {wait;} elif(gt(10,2)) {move;}", "one elif clause with no else"}, {"VALID", "wait(barrelLR);", "barrelLR with no argument"}, {"VALID", "wait(barrelLR(3));", "barrelLR with argument"}, {"VALID", "wait(barrelFB);", "barrelFB with no argument"}, {"VALID", "wait(barrelFB(add(1,fuelLeft)));", "barrelFB with expression argument"}, {"VALID", "$a = 3; move($a);", "variable assignment to number and use in move argument"}, {"VALID", "$a = 3 ; $b = add($a, 3);", "variable assignment to expression with variable"}, {"VALID", "$abcd = 3; move($abcd);", "4 letter variable assignment and use in move argument"}, {"VALID", "$b = mul(3,fuelLeft); move($b);", "variable assignment to expression and use in move argument"}, {"VALID", "$a = 3; while(lt($a, fuelLeft)){$a = add($a,1); move;}", "variable assignment and use in while condition, and expression"}, {"VALID", "$a = 3; $b = 4; if(eq($a, mul($b,3))){wait($a);}", "variable assignments and use in exprs in an if condition"},
 
             {"INVALID", "if (lt(3,4)) {wait;} elif gt(10,2) {move;}", "elif with no ()"}, {"INVALID", "if (lt(3,4)) {wait;} elif (10) {move;}", "elif with expr instead of cond"}, {"INVALID", "if (lt(3,4)) {wait;} elif (gt(10,2)) move;", "elif with no {}"}, {"INVALID", "elif (lt(3,4)) {wait;} else {move;}", "elif with no if"}, {"INVALID", "if (lt(3,4)) {wait;} elif {move;}", "elif with no condition"}, {"INVALID", "if (lt(3,4)) {wait;} else {turnL;} elif (gt(10,2)) {move;}", "elif after else"}, {"INVALID", "a = 3; move(a);", "variable assignment with invalid variable name - no $"}, {"INVALID", "$a ;", "variable assignment with no = "}, {"INVALID", "$a = ;", "variable assignment with no value"}, {"INVALID", "%a1 = 3; move($b2c);", "variable assignment with invalid variable name - digits"}, {"INVALID", "$a = 3; while(lt($a, fuelLeft){$a = add($a,1); move;}", "variable assignment and use in while condition, and expression"}, {"INVALID", "if($a){wait(3);}", "variable as a Condition"}}};
@@ -61,7 +62,7 @@ public class ParserTester2 {
         for (int stage = 0; stage < 4; stage++) {
             System.out.println("\nTesting Parser on Stage " + stage + ":\n");
             for (String[] test : programs[stage]) {
-                boolean valid = test[0] == "VALID";
+                boolean valid = Objects.equals(test[0], "VALID");
                 String program = test[1];
                 String message = test[2];
                 System.out.println("------\nParsing: " + (valid ? "valid: " : "INVALID: ") + program + " [" + message + "]");
@@ -97,45 +98,4 @@ public class ParserTester2 {
             System.out.println("Done");
         }
     }
-
 }
-/**
- * Stage 0
- * <p>
- * PROG  ::= [ STMT ]*
- * STMT  ::= ACT ";" | LOOP
- * ACT   ::= "move" | "turnL" | "turnR" | "takeFuel" | "wait"
- * LOOP  ::= "loop" BLOCK
- * BLOCK ::= "{" STMT+ "}"
- * <p>
- * <p>
- * Stage 1 additions
- * <p>
- * STMT  ::= ... | IF | WHILE
- * ACT   ::= ... | "turnAround" | "shieldOn" | "shieldOff"
- * IF    ::= "if" "(" COND ")" BLOCK
- * WHILE ::= "while" "(" COND ")" BLOCK
- * COND  ::= RELOP "(" SENS "," NUM ")
- * RELOP ::= "lt" | "gt" | "eq"
- * SENS  ::= "fuelLeft" | "oppLR" | "oppFB" | "numBarrels" |
- * "barrelLR" | "barrelFB" | "wallDist"
- * NUM   ::= "-?[1-9][0-9]*|0"
- * <p>
- * <p>
- * Stage 2 additions
- * <p>
- * ACT   ::= "move" [ "(" EXPR ")" ] | ... | | "wait" [ "(" EXPR ")" ]
- * IF    ::= ........ [ "else" BLOCK ]
- * EXPR   ::= NUM | SENS | OP "(" EXPR "," EXPR ")"
- * OP    ::= "add" | "sub" | "mul" | "div"
- * COND  ::= RELOP "(" EXPR "," EXPR ") | "and" "(" COND "," COND ")" | "or" "(" COND "," COND ")" | "not" "(" COND ")"
- * <p>
- * Stage 3 additions
- * <p>
- * STMT  ::= ... | ASSGN ";"
- * IF    ::= ... [ "elif"  "(" COND ")"  BLOCK ]* ....
- * ASSGN ::= VAR "=" EXPR
- * EXPR   ::= ... | VAR
- * SENS  ::= ... | "barrelLR" [ "(" EXPR ")" ] | "barrelFB" [ "(" EXPR ")" ]
- * VAR   ::= "\\$[A-Za-z][A-Za-z0-9]*"
- */
