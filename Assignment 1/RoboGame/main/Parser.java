@@ -14,19 +14,6 @@ import java.util.regex.Pattern;
 
 import static main.Parser.ParserUtil.*;
 
-/**
- * A parser for the RoboGame language.
- * <p>
- * The parser reads a program from a scanner and constructs a parse tree.
- * The parse tree is constructed according to the following grammar:
- * <pre>
- * PROG ::= [STMT]*
- * STMT ::= ACT ";" | LOOP
- * ACT ::= "move" | "turnL" | "turnR" | "takeFuel" | "wait"
- * LOOP ::= "loop" BLOCK
- * BLOCK ::= "{" STMT+ "}"
- * </pre>
- */
 public class Parser {
 
     //----------------------------------------------------------------//
@@ -51,6 +38,25 @@ public class Parser {
     //----------------------------------------------------------------//
     //                            PARSER                              //
     //----------------------------------------------------------------//
+
+    /**
+     *  TODO: Add a grammar for the language (STAGE 1)
+     *  * <pre>
+     *  * PROG  ::= [ STMT ]*
+     *  * STMT  ::= ACT ";" | LOOP | IF | WHILE
+     *  * ACT   ::= "move" | "turnL" | "turnR" | "turnAround" | "shieldOn" |
+     *  *           "shieldOff" | "takeFuel" | "wait"
+     *  * LOOP  ::= "loop" BLOCK
+     *  * IF    ::= "if" "(" COND ")" BLOCK
+     *  * WHILE ::= "while" "(" COND ")" BLOCK
+     *  * BLOCK ::= "{" STMT+ "}"
+     *  * COND  ::= RELOP "(" SENS "," NUM ")
+     *  * RELOP ::= "lt" | "gt" | "eq"
+     *  * SENS  ::= "fuelLeft" | "oppLR" | "oppFB" | "numBarrels" |
+     *  *           "barrelLR" | "barrelFB" | "wallDist"
+     *  * NUM   ::= "-?[1-9][0-9]*|0"
+     *  * <pre>
+     */
 
     /**
      * The top of the parser, which is handed a scanner containing
