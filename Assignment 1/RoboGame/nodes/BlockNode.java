@@ -46,6 +46,14 @@ public class BlockNode implements StatementNode {
         }
     }
 
+    /**
+     * Returns a string representation of this block.
+     * <p>
+     * The string representation is a concatenation of the string representations
+     * of all statements within the block, enclosed in curly braces.
+     *
+     * @return a string representation of this block
+     */
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder("{ ");
