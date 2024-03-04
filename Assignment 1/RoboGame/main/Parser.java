@@ -38,7 +38,7 @@ public class Parser {
     private static final Pattern COMMA = Pattern.compile(",");
     private static final Pattern SEMICOLON = Pattern.compile(";");
 
-    // Sets of valid actions and sensors
+    // Sets of valid actions and relational operators, used for parsing
     private static final Set<String> ACTIONS = Set.of("move", "turnL", "turnR", "takeFuel", "wait", "shieldOn", "shieldOff", "turnAround");
     private static final Set<String> RELOPS = Set.of("lt", "gt", "eq");
 
@@ -113,11 +113,14 @@ public class Parser {
     }
 
     /**
-     * Parses an action according to the grammar rule for ACT:
+     * Parses an action from the given scanner input according to the specified grammar rule for ACT.
+     * This method is called by {@link #parseStatements(Scanner)}.
      * <p>
+     * Grammar rule:
      * ACT ::= "move" | "turnL" | "turnR" | "turnAround" | "shieldOn" | "shieldOff" | "takeFuel" | "wait"
      *
-     * @return An MovementNode representing the parsed action.
+     * @param s The scanner containing the action to be parsed.
+     * @return A {@code ProgramNode} representing the parsed action. Adjust the return type as necessary.
      */
     private ProgramNode parseAction(Scanner s, String action) {
         require(SEMICOLON, MISSING_SEMICOLON, s); // ";"
@@ -137,12 +140,14 @@ public class Parser {
     }
 
     /**
-     * Parses a loop according to the grammar rule for LOOP:
+     * Parses a loop from the given scanner input according to the specified grammar rule for LOOP.
+     * This method is called by {@link #parseStatements(Scanner)}.
      * <p>
+     * Grammar rule:
      * LOOP ::= "loop" BLOCK
      *
-     * @param s Scanner positioned at the "loop" keyword.
-     * @return A LoopNode representing the parsed loop.
+     * @param s The scanner positioned at the "loop" keyword.
+     * @return A {@code LoopNode} representing the parsed loop.
      */
     private LoopNode parseLoop(Scanner s) {
         // Curly brace check and block parse
@@ -154,12 +159,14 @@ public class Parser {
     }
 
     /**
-     * Parses an if statement according to the grammar rule for IF:
+     * Parses an if statement from the given scanner input according to the specified grammar rule for IF.
+     * This method is called by {@link #parseStatements(Scanner)}.
      * <p>
+     * Grammar rule:
      * IF ::= "if" "(" COND ")" BLOCK
      *
-     * @param s Scanner positioned at the "if" keyword.
-     * @return An IfNode representing the parsed if statement.
+     * @param s The scanner positioned at the "if" keyword.
+     * @return An {@code IfNode} representing the parsed if statement.
      */
     private ProgramNode parseIf(Scanner s) {
         // Parentheses check and condition parse
@@ -176,12 +183,14 @@ public class Parser {
     }
 
     /**
-     * Parses a while loop according to the grammar rule for WHILE:
+     * Parses a while loop from the given scanner input according to the specified grammar rule for WHILE.
+     * This method is called by {@link #parseStatements(Scanner)}.
      * <p>
+     * Grammar rule:
      * WHILE ::= "while" "(" COND ")" BLOCK
      *
-     * @param s Scanner positioned at the "while" keyword.
-     * @return A WhileNode representing the parsed while loop.
+     * @param s The scanner positioned at the "while" keyword.
+     * @return A {@code WhileNode} representing the parsed while loop.
      */
     private WhileNode parseWhile(Scanner s) {
         // Parentheses check and condition parse
@@ -198,12 +207,14 @@ public class Parser {
     }
 
     /**
-     * Parses a block according to the grammar rule for BLOCK:
+     * Parses a block from the given scanner input according to the specified grammar rule for BLOCK.
+     * This method is called by {@link #parseLoop(Scanner)}, {@link #parseIf(Scanner)}, and {@link #parseWhile(Scanner)}.
      * <p>
-     * BLOCK ::= "{" STMT+ "}"
+     * Grammar rule:
+     * BLOCK ::= "{" [STMT]* "}"
      *
-     * @param s Scanner positioned at the start of a block.
-     * @return A BlockNode representing the parsed block.
+     * @param s The scanner positioned at the start of a block.
+     * @return A {@code BlockNode} representing the parsed block.
      */
     private BlockNode parseBlock(Scanner s) {
         List<ProgramNode> statements = new ArrayList<>();

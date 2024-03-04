@@ -37,7 +37,6 @@ public class RoboGame extends JFrame {
         setVisible(true);
     }
 
-
     /** Make the menus for the interface */
     private void createMenus() {
         JMenuBar menu = new JMenuBar();
@@ -107,8 +106,7 @@ public class RoboGame extends JFrame {
         return menuItem;
     }
 
-
-    /*
+    /**
      * Ask the user (using a file dialog) for a program to load.
      */
     public File getCodeFile() {
