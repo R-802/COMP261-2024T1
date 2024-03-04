@@ -1,7 +1,7 @@
 package nodes;
 
 import main.Robot;
-import nodes.interfaces.StatementNode;
+import nodes.interfaces.ProgramNode;
 import util.exepeptions.RobotInterruptedException;
 
 /**
@@ -10,7 +10,7 @@ import util.exepeptions.RobotInterruptedException;
  * A loop contains a block of statements to be executed repeatedly until the robot is dead.
  * It acts as a single {@code StatementNode} within the parsed program structure.
  */
-public class LoopNode implements StatementNode {
+public class LoopNode implements ProgramNode {
 
     private final BlockNode body;
 

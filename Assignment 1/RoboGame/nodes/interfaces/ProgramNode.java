@@ -15,4 +15,12 @@ public interface ProgramNode {
      * @param robot the robot to control
      */
     void execute(Robot robot);
+
+    /**
+     * Returns a string representation of the program component represented by this node.
+     * The string representation is intended for debugging and logging purposes.
+     *
+     * @return a string representation of the program component
+     */
+    String toString();
 }

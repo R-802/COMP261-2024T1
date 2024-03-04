@@ -6,7 +6,7 @@ import util.exepeptions.RobotInterruptedException;
 /**
  * Defines the contract for node classes representing actions within a robot program.
  */
-public interface ActionNode extends StatementNode {
+public interface MovementNode extends ProgramNode {
 
     /**
      * Performs the action associated with the node.

@@ -1,30 +1,23 @@
 package nodes;
 
 import main.Robot;
-import nodes.interfaces.StatementNode;
+import nodes.interfaces.ProgramNode;
 import util.exepeptions.RobotInterruptedException;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Represents a block/list of statements to be executed sequentially.
- * <p>
- * A block can contain any number of statements, including other blocks,
- * actions, and loops. It acts as a single {@code StatementNode} within
- * the parsed program structure.
- */
-public class BlockNode implements StatementNode {
+public class BlockNode implements ProgramNode {
+
+    private final List<ProgramNode> statements;
 
     /**
-     * The list of statements within this block.
+     * Construct a new block with the given list of statements.
+     * A block statement is defined as a list of nodes to execute.
+     *
+     * @param statements the list of statements to execute
      */
-    private final List<StatementNode> statements;
-
-    /**
-     * Constructor
-     */
-    public BlockNode(List<StatementNode> statements) {
+    public BlockNode(List<ProgramNode> statements) {
         this.statements = new ArrayList<>(statements);
     }
 
@@ -37,12 +30,10 @@ public class BlockNode implements StatementNode {
      * @throws RobotInterruptedException if the robot is interrupted during execution
      */
     @Override
-    public void execute(Robot robot) throws  RobotInterruptedException {
-        for (StatementNode statement : statements) {
+    public void execute(Robot robot) throws RobotInterruptedException {
+        for (ProgramNode statement : statements) {
             statement.execute(robot);
-            if (robot.isDead()) { // Terminate on robot death
-                return;
-            }
+            if (robot.isDead()) break; // Exit loop if robot is dead
         }
     }
 
@@ -56,9 +47,10 @@ public class BlockNode implements StatementNode {
      */
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder("{ ");
-        for (StatementNode statement : statements) {
-            builder.append(statement.toString()).append(" ");
+        StringBuilder builder = new StringBuilder("{\n");
+        for (ProgramNode statement : statements) {
+            // Each statement on a new line, indented for clarity
+            builder.append("  ").append(statement.toString()).append("\n");
         }
         builder.append("}");
         return builder.toString();
